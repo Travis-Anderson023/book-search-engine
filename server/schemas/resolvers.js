@@ -1,4 +1,5 @@
 const { Book, User } = require('../models');
+const { signToken } = require('../utils/auth');
 
 // createUser,
 //   getSingleUser,
@@ -16,7 +17,31 @@ const resolvers = {
     Mutation: {
         createUser: async (_, { username, email, password }) => {
             const user = await User.create({ username, email, password });
-            return user;
+
+            if (!user) {
+                return 'Something is wrong!'
+            }
+            const token = signToken(user);
+            return { token, user };
+        },
+        login: async (_, { email, password }) => {
+            try {
+                const user = await User.findOne({ email });
+                if (!user) {
+                    console.log('no user found');
+                    return 'Can\'t find this user'
+                }
+                const correctPw = await user.isCorrectPassword(password);
+                if (!correctPw) {
+                    console.log('wrong password');
+                    return 'Wrong password!'
+                }
+                const token = signToken(user);
+                console.log('made it here');
+                return user;
+            } catch (err) {
+                return 'test';
+            }
         },
         saveBook: async (_, { user, bookId }) => {
             const updatedUser = await User.findOneAndUpdate(
@@ -34,7 +59,6 @@ const resolvers = {
             );
             return updatedUser;
         }
-        //login: async (_, { email, password }) => {
 
     }
 };
