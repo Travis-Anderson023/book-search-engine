@@ -9,8 +9,11 @@ const { signToken } = require('../utils/auth');
 
 const resolvers = {
     Query: {
-        books: () => Book.find().sort({ createdAt: -1 }),
-        book: (_, { id }) => Book.findById(id),
+        books: async (root, { userId }) => {
+            const user = await User.findById(userId)
+            return user.savedBooks
+        },
+        book: (_, { _id }) => Book.findById({ id: _id }),
         users: () => User.find().sort({ createdAt: -1 }),
         user: async (_, { _id }) => await User.findById({ _id: _id }),
     },
@@ -37,10 +40,9 @@ const resolvers = {
                     return 'Wrong password!'
                 }
                 const token = signToken(user);
-                console.log('made it here');
-                return user;
+                return { token, user };
             } catch (err) {
-                return 'test';
+                return err;
             }
         },
         saveBook: async (_, { user, bookId }) => {

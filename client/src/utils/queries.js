@@ -1,16 +1,16 @@
 import { gql } from '@apollo/client';
 
 export const QUERY_BOOKS = gql`
-    query books {
-        books {
+    query User($userId: ID!) {
+        books(userId: $userId) {
             _id
+            title
             authors
             description
             bookId
             image
             link
-            title
-        }
+          }
     }
 `;
 
